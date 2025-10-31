@@ -3,6 +3,8 @@ import numpy as np
 import plotly.express as px
 from dash import Dash, dcc, html, Input, Output
 
+from pie import create_pie_chart, CATEGORY_ORDER, COLOR_MAP, delay_label_map
+
 #Load and prepare data
 df = pd.read_csv("airline_delay.csv")
 
@@ -25,16 +27,6 @@ df_melted = df.melt(
     var_name="delay_type",
     value_name="delay_count"
 )
-
-#Dictionary for dropdown
-delay_types = {
-    "All": "All",
-    "Carrier Delays": "carrier_ct",
-    "Weather Delays": "weather_ct",
-    "NAS Delays": "nas_ct",
-    "Security Delays": "security_ct",
-    "Late Aircraft Delays": "late_aircraft_ct"
-}
 
 #Starting Dash app
 app = Dash(__name__)
@@ -96,35 +88,25 @@ app.layout = html.Div([
         ),
     ], style={"width": "22%", "display": "inline-block"}),
 
-    dcc.Graph(id="delay-scatter", style={"margin-top": "20px"})
+    dcc.Graph(id="delay-scatter", style={"margin-top": "20px"}),
+
+    dcc.Graph(id="delay-pie", style={"margin-top": "20px"})
 ])
 
 #Update scatterplot
 @app.callback(
     Output("delay-scatter", "figure"),
+    Output("delay-pie", "figure"),
     Input("year-dropdown", "value"),
     Input("carrier-dropdown", "value"),
     Input("state-dropdown", "value"),
     Input("delay-dropdown", "value"),
 )
 def update_scatter(selected_year, selected_carrier, selected_state, selected_delay):
-    import numpy as np
 
     filtered = df_melted.copy()
 
-    # Readable delay labels
-    delay_label_map = {
-        "carrier_ct": "Carrier Delay",
-        "weather_ct": "Weather Delay",
-        "nas_ct": "NAS Delay",
-        "security_ct": "Security Delay",
-        "late_aircraft_ct": "Late Aircraft Delay"
-    }
-
-    # Map delay types to readable labels
-    filtered["delay_type"] = filtered["delay_type"].map(delay_label_map)
-
-    # Apply filters
+        # Apply filters
     if selected_year != "All":
         filtered = filtered[filtered["year"] == selected_year]
     if selected_carrier != "All":
@@ -132,7 +114,17 @@ def update_scatter(selected_year, selected_carrier, selected_state, selected_del
     if selected_state != "All":
         filtered = filtered[filtered["state"] == selected_state]
     if selected_delay != "All":
-        filtered = filtered[filtered["delay_type"] == delay_label_map[selected_delay]]
+        filtered = filtered[filtered["delay_type"] == selected_delay]
+
+    # Map delay types to readable labels
+    filtered["delay_type"] = filtered["delay_type"].map(delay_label_map)
+
+
+    year_txt = "All Years" if selected_year == "All" else str(selected_year)
+    carrier_txt = "All Carriers" if selected_carrier == "All" else str(selected_carrier)
+    state_txt = "All States" if selected_state == "All" else str(selected_state)
+    pie_title = f"Delay Cause Breakdown — {carrier_txt}, {state_txt}, {year_txt}"
+    pie_fig = create_pie_chart(filtered, title=pie_title)
 
     filtered["delay_type"] = pd.Categorical(
         filtered["delay_type"],
@@ -147,10 +139,12 @@ def update_scatter(selected_year, selected_carrier, selected_state, selected_del
     )
 
     if selected_delay == "All":
-        jitter_strength_x = 50     # small horizontal offset in flight count
-        jitter_strength_y = 0.3    # small vertical offset in on-time %
+        jitter_strength_x = 50
+        jitter_strength_y = 0.3
         filtered["arr_flights"] = filtered["arr_flights"] + np.random.uniform(-jitter_strength_x, jitter_strength_x, len(filtered))
         filtered["on_time_percent"] = filtered["on_time_percent"] + np.random.uniform(-jitter_strength_y, jitter_strength_y, len(filtered))
+        filtered["on_time_percent"] = filtered["on_time_percent"].clip(0, 100)
+
 
     # Scatter plot
     fig = px.scatter(
@@ -207,6 +201,7 @@ def update_scatter(selected_year, selected_carrier, selected_state, selected_del
         margin=dict(l=60, r=40, t=80, b=60)
     )
 
-    return fig
+    return fig, pie_fig
 
-app.run(debug=True)
+if __name__ == "__main__":
+    app.run(debug=False)
