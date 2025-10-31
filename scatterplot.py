@@ -155,13 +155,7 @@ def update_scatter(selected_year, selected_carrier, selected_state, selected_del
         size="delay_count",
         hover_data=["airport_name", "year", "state", "total_delays", "arr_delay"],
         title="On-Time Arrival Rate vs Total Flights",
-        color_discrete_map={
-            "Carrier Delay": "#636EFA",
-            "Weather Delay": "#00CC96",
-            "NAS Delay": "#EF553B",
-            "Security Delay": "#AB63FA",
-            "Late Aircraft Delay": "#FFA15A"
-        },
+        color_discrete_map=COLOR_MAP,
         category_orders={"delay_type": [
             "Carrier Delay",
             "Weather Delay",
