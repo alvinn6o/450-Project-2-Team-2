@@ -28,8 +28,23 @@ COLOR_MAP = {
 
 
 def create_pie_chart(df: pd.DataFrame, title: str = "Proportion of Delay Types"):
+
+
     if df is None or df.empty:
-        return go.Figure()
+        empty_fig = go.Figure()
+        empty_fig.update_layout(
+            title=title,
+            template="plotly_white",
+            annotations=[{
+                'text': 'No data available',
+                'xref': 'paper',
+                'yref': 'paper',
+                'x': 0.5, 'y': 0.5,
+                'showarrow': False,
+                'font': {'size': 16}
+            }]
+        )
+        return empty_fig
     
     df_pie = df.copy()
 
@@ -39,8 +54,22 @@ def create_pie_chart(df: pd.DataFrame, title: str = "Proportion of Delay Types")
         .sum()
     )
 
+
     if df_pie["delay_count"].sum() == 0:
-        return go.Figure()
+        empty_fig = go.Figure()
+        empty_fig.update_layout(
+            title=title,
+            template="plotly_white",
+            annotations=[{
+                'text': 'No delays recorded',
+                'xref': 'paper',
+                'yref': 'paper',
+                'x': 0.5, 'y': 0.5,
+                'showarrow': False,
+                'font': {'size': 16}
+            }]
+        )
+        return empty_fig
     
     fig = px.pie(
         df_pie,
