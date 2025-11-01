@@ -36,38 +36,41 @@ app.layout = html.Div([
 
     #Year dropdown menu
     html.Div([
-            html.Label("Select Year:"),
-            dcc.Dropdown(
-                id="year-dropdown",
-                options=[{"label": "All", "value": "All"}] +
-                        [{"label": str(y), "value": y} for y in sorted(df["year"].unique())],
-                value="All",
-                clearable=False,
-            ),
+        html.Label("Select Year:"),
+        dcc.Dropdown(
+            id="year-dropdown",
+            options=[{"label": "All", "value": "All"}] +
+                    [{"label": str(y), "value": y} for y in sorted(df["year"].unique())],
+            value=["All"],
+            multi=True, #added for multi-selection
+            clearable=False,
+        ),
     ], style={"width": "22%", "display": "inline-block", "margin-right": "1%"}),
 
     #Carrier dropdown menu
     html.Div([
-            html.Label("Select Carrier:"),
-            dcc.Dropdown(
-                id="carrier-dropdown",
-                options=[{"label": "All", "value": "All"}] +
-                        [{"label": str(y), "value": y} for y in sorted(df["carrier_name"].unique())],
-                value="All",
-                clearable=False,
-            ),
+        html.Label("Select Carrier:"),
+        dcc.Dropdown(
+            id="carrier-dropdown",
+            options=[{"label": "All", "value": "All"}] +
+                    [{"label": str(y), "value": y} for y in sorted(df["carrier_name"].unique())],
+            value=["All"],
+            multi=True, #multi-selection
+            clearable=False,
+        ),
     ], style={"width": "22%", "display": "inline-block", "margin-right": "1%"}),
 
     #State dropdown menu
     html.Div([
-            html.Label("Select State:"),
-            dcc.Dropdown(
-                id="state-dropdown",
-                options=[{"label": "All", "value": "All"}] +
-                        [{"label": str(y), "value": y} for y in sorted(df["state"].unique())],
-                value="All",
-                clearable=False,
-            ),
+        html.Label("Select State:"),
+        dcc.Dropdown(
+            id="state-dropdown",
+            options=[{"label": "All", "value": "All"}] +
+                    [{"label": str(y), "value": y} for y in sorted(df["state"].unique())],
+            value=["All"],
+            multi=True,
+            clearable=False,
+        ),
     ], style={"width": "22%", "display": "inline-block", "margin-right": "1%"}),
 
     #Delay Cause dropdown menu
@@ -83,15 +86,21 @@ app.layout = html.Div([
                 {"label": "Security Delays", "value": "security_ct"},
                 {"label": "Late Aircraft Delays", "value": "late_aircraft_ct"},
             ],
-            value="All",
+            value=["All"],
+            multi=True,
             clearable=False,
         ),
     ], style={"width": "22%", "display": "inline-block"}),
 
     dcc.Graph(id="delay-scatter", style={"margin-top": "20px"}),
-
     dcc.Graph(id="delay-pie", style={"margin-top": "20px"})
 ])
+
+#display text function for filters below
+def format_selection(selection, label):
+    if "All" in selection:
+        return f"All {label}s"
+    return ", ".join(map(str, selection))
 
 #Update scatterplot
 @app.callback(
@@ -103,27 +112,30 @@ app.layout = html.Div([
     Input("delay-dropdown", "value"),
 )
 def update_scatter(selected_year, selected_carrier, selected_state, selected_delay):
-
     filtered = df_melted.copy()
 
-        # Apply filters
-    if selected_year != "All":
-        filtered = filtered[filtered["year"] == selected_year]
-    if selected_carrier != "All":
-        filtered = filtered[filtered["carrier_name"] == selected_carrier]
-    if selected_state != "All":
-        filtered = filtered[filtered["state"] == selected_state]
-    if selected_delay != "All":
-        filtered = filtered[filtered["delay_type"] == selected_delay]
+    if "All" not in selected_year:
+        filtered = filtered[filtered["year"].isin(selected_year)]
+
+    if "All" not in selected_carrier:
+        filtered = filtered[filtered["carrier_name"].isin(selected_carrier)]
+
+    if "All" not in selected_state:
+        filtered = filtered[filtered["state"].isin(selected_state)]
+
+    if "All" not in selected_delay:
+        filtered = filtered[filtered["delay_type"].isin(selected_delay)]
 
     # Map delay types to readable labels
     filtered["delay_type"] = filtered["delay_type"].map(delay_label_map)
 
-
-    year_txt = "All Years" if selected_year == "All" else str(selected_year)
-    carrier_txt = "All Carriers" if selected_carrier == "All" else str(selected_carrier)
-    state_txt = "All States" if selected_state == "All" else str(selected_state)
+    #names for chart
+    year_txt = format_selection(selected_year, "Year")
+    carrier_txt = format_selection(selected_carrier, "Carrier")
+    state_txt = format_selection(selected_state, "State")
     pie_title = f"Delay Cause Breakdown — {carrier_txt}, {state_txt}, {year_txt}"
+
+
     pie_fig = create_pie_chart(filtered, title=pie_title)
 
     filtered["delay_type"] = pd.Categorical(
@@ -138,13 +150,12 @@ def update_scatter(selected_year, selected_carrier, selected_state, selected_del
         ordered=False
     )
 
-    if selected_delay == "All":
+    if "All" in selected_delay:
         jitter_strength_x = 50
         jitter_strength_y = 0.3
         filtered["arr_flights"] = filtered["arr_flights"] + np.random.uniform(-jitter_strength_x, jitter_strength_x, len(filtered))
         filtered["on_time_percent"] = filtered["on_time_percent"] + np.random.uniform(-jitter_strength_y, jitter_strength_y, len(filtered))
         filtered["on_time_percent"] = filtered["on_time_percent"].clip(0, 100)
-
 
     # Scatter plot
     fig = px.scatter(
