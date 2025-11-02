@@ -8,6 +8,22 @@ from pie import create_pie_chart, CATEGORY_ORDER, COLOR_MAP, delay_label_map
 #Load and prepare data
 df = pd.read_csv("airline_delay.csv")
 
+#Handle missing values before computing metrics
+count_cols = ["arr_flights", "carrier_ct", "weather_ct", "nas_ct", "security_ct", "late_aircraft_ct"]
+time_cols = ["arr_delay", "arr_del15"]
+
+#Fill count-based columns with mode (most frequent value)
+for col in count_cols:
+    if df[col].isna().any():
+        mode_val = df[col].mode()[0]
+        df[col].fillna(mode_val, inplace=True)
+
+#Fill time-based columns with median
+for col in count_cols:
+    if df[col].isna().any():
+        median_val = df[col].median()
+        df[col].fillna(median_val, inplace=True)
+
 #Extracting States
 df["state"] = df["airport_name"].str.extract(r",\s*([A-Z]{2})")
 df["state"] = df["state"].fillna("Unknown")
@@ -92,6 +108,19 @@ app.layout = html.Div([
         ),
     ], style={"width": "22%", "display": "inline-block"}),
 
+    html.Div([
+        html.Label("View Mode:"),
+        dcc.RadioItems(
+            id="view-mode",
+            options=[
+                {"label": "All Delay Causes", "value": "all"},
+                {"label": "Dominant Delay Cause", "value": "dominant"}
+            ],
+            value="all",
+            inline=True
+        )
+    ], style={"margin-top": "15px"}),
+
     dcc.Graph(id="delay-scatter", style={"margin-top": "20px"}),
     dcc.Graph(id="delay-pie", style={"margin-top": "20px"})
 ])
@@ -110,8 +139,9 @@ def format_selection(selection, label):
     Input("carrier-dropdown", "value"),
     Input("state-dropdown", "value"),
     Input("delay-dropdown", "value"),
+    Input("view-mode", "value")
 )
-def update_scatter(selected_year, selected_carrier, selected_state, selected_delay):
+def update_scatter(selected_year, selected_carrier, selected_state, selected_delay, view_mode):
     filtered = df_melted.copy()
 
     if "All" not in selected_year:
@@ -135,6 +165,18 @@ def update_scatter(selected_year, selected_carrier, selected_state, selected_del
 
     filtered["delay_share"] = (filtered["delay_count"] / filtered["total_delays"]) * 100
     filtered["delay_share_label"] = filtered["delay_share"].round(2).astype(str) + "%"
+
+    #Show dominant delay if toggle is set
+    if view_mode == "dominant":
+        dominant = (
+            filtered.groupby(
+                ["airport_name", "year", "state", "carrier_name", "arr_flights", "on_time_percent", "total_delays", "arr_delay"],
+                as_index=False
+            )
+            .apply(lambda g: g.loc[g["delay_count"].idxmax()])
+            .reset_index(drop=True)
+        )
+        filtered = dominant
 
     #names for chart
     year_txt = format_selection(selected_year, "Year")
