@@ -129,6 +129,13 @@ def update_scatter(selected_year, selected_carrier, selected_state, selected_del
     # Map delay types to readable labels
     filtered["delay_type"] = filtered["delay_type"].map(delay_label_map)
 
+    # Compute percentage of delayed flights
+    filtered["delay_percent"] = (filtered["total_delays"] / filtered["arr_flights"]) * 100
+    filtered["delay_percent_label"] = filtered["delay_percent"].round(3).astype(str) + "%"
+
+    filtered["delay_share"] = (filtered["delay_count"] / filtered["total_delays"]) * 100
+    filtered["delay_share_label"] = filtered["delay_share"].round(2).astype(str) + "%"
+
     #names for chart
     year_txt = format_selection(selected_year, "Year")
     carrier_txt = format_selection(selected_carrier, "Carrier")
@@ -163,8 +170,8 @@ def update_scatter(selected_year, selected_carrier, selected_state, selected_del
         x="arr_flights",
         y="on_time_percent",
         color="delay_type",
-        size="delay_count",
-        hover_data=["airport_name", "year", "state", "total_delays", "arr_delay"],
+        size="delay_percent",
+        hover_data=["carrier_name", "airport_name", "state", "year", "delay_type", "arr_flights", "on_time_percent", "delay_count", "delay_percent_label", "arr_delay", "total_delays", "delay_share_label"],
         title="On-Time Arrival Rate vs Total Flights",
         color_discrete_map=COLOR_MAP,
         category_orders={"delay_type": [
@@ -177,13 +184,16 @@ def update_scatter(selected_year, selected_carrier, selected_state, selected_del
         labels={
             "arr_flights": "Total Flights",
             "on_time_percent": "On-Time Arrival Rate (%)",
-            "delay_count": "Delay Count",
+            "delay_percent_label": "Delayed Flights (%)",
+            "delay_count": "Delayed Flights (count)",
             "total_delays": "Total Delays",
             "arr_delay": "Average Arrival Delay (min)",
             "year": "Year",
             "state": "State",
             "airport_name": "Airport",
-            "delay_type": "Delay Cause"
+            "delay_type": "Delay Cause",
+            "carrier_name": "Carrier",
+            "delay_share_label": "Share of Total Delays (%)"
         }
     )
 
