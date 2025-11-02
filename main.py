@@ -166,26 +166,25 @@ def update_scatter(selected_year, selected_carrier, selected_state, selected_del
     filtered["delay_share"] = (filtered["delay_count"] / filtered["total_delays"]) * 100
     filtered["delay_share_label"] = filtered["delay_share"].round(2).astype(str) + "%"
 
-    #Show dominant delay if toggle is set
+    #names for chart
+    year_txt = format_selection(selected_year, "Year")
+    carrier_txt = format_selection(selected_carrier, "Carrier")
+    state_txt = format_selection(selected_state, "State")
+    pie_title = f"Delay Cause Breakdown — {carrier_txt}, {state_txt}, {year_txt}"
+    pie_fig = create_pie_chart(filtered, title=pie_title)
+
+    # Show dominant delay if toggle is set
     if view_mode == "dominant":
         dominant = (
             filtered.groupby(
-                ["airport_name", "year", "state", "carrier_name", "arr_flights", "on_time_percent", "total_delays", "arr_delay"],
+                ["airport_name", "year", "state", "carrier_name", "arr_flights", "on_time_percent", "total_delays",
+                 "arr_delay"],
                 as_index=False
             )
             .apply(lambda g: g.loc[g["delay_count"].idxmax()])
             .reset_index(drop=True)
         )
         filtered = dominant
-
-    #names for chart
-    year_txt = format_selection(selected_year, "Year")
-    carrier_txt = format_selection(selected_carrier, "Carrier")
-    state_txt = format_selection(selected_state, "State")
-    pie_title = f"Delay Cause Breakdown — {carrier_txt}, {state_txt}, {year_txt}"
-
-
-    pie_fig = create_pie_chart(filtered, title=pie_title)
 
     filtered["delay_type"] = pd.Categorical(
         filtered["delay_type"],
