@@ -1,6 +1,6 @@
 # 450-Project-2-Team-2
 
-**Presentation Slides**
+[**Presentation Slides**](https://docs.google.com/presentation/d/1Sy-BmRXvAo0ifVh7gCFcVCHIEpEh_IO4InQ3O2QPzzQ/edit?usp=sharing)
 
 [**Original Visualization Notebook**](https://www.kaggle.com/code/chibss/aeroguard-flight-delay-cause-analysis/notebook)
 
@@ -69,9 +69,9 @@
 - **Dash**: Creating layouts and dropdowns as well as handling dynamic visual update via callbacks
 
 ## Setup and Run Instructions
-1. Install dependencies pip install pandas plotly dash
+1. Install dependencies: pip install pandas plotly dash
 2. Make sure all files are in same folder as main.py
-4. Run the app python main.py
+4. Run the app: python main.py
 5. Open in your browser Visit: http://127.0.0.1:8050/ (Should appear in your console window)
 
 
