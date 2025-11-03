@@ -2,6 +2,8 @@
 
 [**Presentation Slides**](https://docs.google.com/presentation/d/1Sy-BmRXvAo0ifVh7gCFcVCHIEpEh_IO4InQ3O2QPzzQ/edit?usp=sharing)
 
+[**Demo Video**](https://youtu.be/cUXtNxX5XuU)
+
 [**Original Visualization Notebook**](https://www.kaggle.com/code/chibss/aeroguard-flight-delay-cause-analysis/notebook)
 
 ## Original Visualization
@@ -13,7 +15,7 @@
 
 ## Dataset Used
 - airline_delay.csv based on US Department of Transportation (DOT) and Bureau of Transportation Statistic (BTS) Data from 2019-2020
-- Structure:
+- **Structure**:
   - Rows: Combination of airport-carrier-month info
   - Columns: Flight totals, delay counts, and categorized delay causes by DOT/BTS standards.
 - **Temporal Data**: year, month
