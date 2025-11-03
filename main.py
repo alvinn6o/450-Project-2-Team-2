@@ -16,13 +16,13 @@ time_cols = ["arr_delay", "arr_del15"]
 for col in count_cols:
     if df[col].isna().any():
         mode_val = df[col].mode()[0]
-        df[col].fillna(mode_val, inplace=True)
+        df[col] = df[col].fillna(mode_val)
 
 #Fill time-based columns with median
 for col in count_cols:
     if df[col].isna().any():
         median_val = df[col].median()
-        df[col].fillna(median_val, inplace=True)
+        df[col] = df[col].fillna(median_val)
 
 #Extracting States
 df["state"] = df["airport_name"].str.extract(r",\s*([A-Z]{2})")
@@ -166,13 +166,6 @@ def update_scatter(selected_year, selected_carrier, selected_state, selected_del
     filtered["delay_share"] = (filtered["delay_count"] / filtered["total_delays"]) * 100
     filtered["delay_share_label"] = filtered["delay_share"].round(2).astype(str) + "%"
 
-    #names for chart
-    year_txt = format_selection(selected_year, "Year")
-    carrier_txt = format_selection(selected_carrier, "Carrier")
-    state_txt = format_selection(selected_state, "State")
-    pie_title = f"Delay Cause Breakdown — {carrier_txt}, {state_txt}, {year_txt}"
-    pie_fig = create_pie_chart(filtered, title=pie_title)
-
     # Show dominant delay if toggle is set
     if view_mode == "dominant":
         dominant = (
@@ -185,6 +178,13 @@ def update_scatter(selected_year, selected_carrier, selected_state, selected_del
             .reset_index(drop=True)
         )
         filtered = dominant
+
+    #names for chart
+    year_txt = format_selection(selected_year, "Year")
+    carrier_txt = format_selection(selected_carrier, "Carrier")
+    state_txt = format_selection(selected_state, "State")
+    pie_title = f"Delay Cause Breakdown — {carrier_txt}, {state_txt}, {year_txt}"
+    pie_fig = create_pie_chart(filtered, title=pie_title)
 
     filtered["delay_type"] = pd.Categorical(
         filtered["delay_type"],
