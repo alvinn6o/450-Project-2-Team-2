@@ -113,10 +113,10 @@ app.layout = html.Div([
         dcc.RadioItems(
             id="view-mode",
             options=[
-                {"label": "All Delay Causes", "value": "all"},
-                {"label": "Dominant Delay Cause", "value": "dominant"}
+                {"label": "Dominant Delay Cause", "value": "dominant"},
+                {"label": "All Delay Causes", "value": "all"}
             ],
-            value="all",
+            value="dominant",
             inline=True
         )
     ], style={"margin-top": "15px"}),
